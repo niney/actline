@@ -15,8 +15,12 @@ module.exports = {
 				exclude: /node_modules/,
 			},
 			{
-				test: /\.css$/,
-				use: ["style-loader", "css-loader"],
+				test: /\.p?css$/,
+				use: [
+					{loader: "style-loader"},
+					{loader: "css-loader"},
+					{loader: "postcss-loader"}
+				],
 			},
 			{
 				test: /\.(scss|sass)$/,
@@ -31,7 +35,9 @@ module.exports = {
 			},
 		],
 	},
-	plugins: [new HtmlWebpackPlugin({ template: "index.html.ejs" })],
+	plugins: [
+		new HtmlWebpackPlugin({ template: "index.html.ejs" }),
+	],
 	externals: {
 		react: "React",
 		"react-dom": "ReactDOM",
