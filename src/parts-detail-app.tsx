@@ -14,6 +14,8 @@ declare const $: any;
 export interface PartDetailParam extends ActlineCommonParam {
     mlServerUrl?: string;
     partsId: string;
+    goPurchaseCallback?: (item, price, purchaseStock) => void;
+    goEstimateCallback?: (item, price, purchaseStock) => void;
 }
 
 let param: PartDetailParam = {
