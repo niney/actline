@@ -1,9 +1,10 @@
 import * as React from "react";
 import {hot} from "react-hot-loader";
 import {PartDetailParam} from "../parts-detail-app";
-import "./../assets/scss/PartsDetail.css";
+import "./../assets/scss/PartsDetail.scss";
 
 declare const $: any;
+declare const GerberCart: any;
 
 type State = {
     items: any;
@@ -77,8 +78,11 @@ class PartsDetail extends React.Component<Record<any, PartDetailParam>, State> {
      */
     setStateCalcPriceCurrency(part, purchaseStock) {
         const price = parseInt(this.calcPrice(part, purchaseStock).toFixed()); // 가격
-        const vatPrice = parseInt((price * 0.1).toFixed()); // 부가세
-        const sellPrice = price + vatPrice; // 판매가격
+        const sendCost = price < 50000 ? 2500 : 0; // 5만원 이상은 배송비 무료
+        const priceWithSendCost = price + sendCost;
+        const vatPrice = parseInt((priceWithSendCost * 0.1).toFixed()); // 부가세
+        const sellPrice = priceWithSendCost + vatPrice; // 판매가격
+
         const currencyPrice = this.currency(price);
         const currencyVatPrice = this.currency(vatPrice);
         const currencySellPrice = this.currency(sellPrice);
@@ -110,6 +114,30 @@ class PartsDetail extends React.Component<Record<any, PartDetailParam>, State> {
      */
     openDatasheet(item) {
         window.open(item.best_datasheet.url, '_blank');
+    }
+
+    /**
+     * 구매하기 이벤트
+     * @param items
+     */
+    goPurchase(items) {
+        const goPurchaseCallback = this.props.params.goPurchaseCallback;
+        if(!goPurchaseCallback) {
+            return;
+        }
+        goPurchaseCallback(items, this.state.price, this.state.purchaseStock);
+    }
+
+    /**
+     * 견적요청하기 이벤트
+     * @param items
+     */
+    goEstimate(items) {
+        const goEstimateCallback = this.props.params.goEstimateCallback;
+        if(!goEstimateCallback) {
+            return;
+        }
+        goEstimateCallback(items, this.state.price, this.state.purchaseStock);
     }
 
     public render() {
@@ -285,6 +313,10 @@ class PartsDetail extends React.Component<Record<any, PartDetailParam>, State> {
                                     </dd>
                                 </dl>
                             ))}
+                            </div>
+                            <div>
+                                <button className="sp-pd-btn-primary mt-2 w-full" onClick={() => this.goPurchase(item)}>구매하기</button>
+                                <button className="sp-pd-btn-info mt-2 w-full" onClick={() => this.goEstimate(item)}>견적요청</button>
                             </div>
                         </div>
 

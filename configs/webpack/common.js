@@ -14,17 +14,50 @@ module.exports = {
 				use: ["babel-loader"],
 				exclude: /node_modules/,
 			},
+			// {
+			// 	test: /\.p?css$/,
+			// 	use: [
+			// 		{loader: "style-loader"},
+			// 		{loader: "css-loader"},
+			// 		{loader: "postcss-loader"}
+			// 	],
+			// },
+			// {
+			// 	test: /\.(scss|sass)$/,
+			// 	use: ["style-loader", "css-loader", "sass-loader"],
+			// },
 			{
 				test: /\.p?css$/,
 				use: [
 					{loader: "style-loader"},
-					{loader: "css-loader"},
-					{loader: "postcss-loader"}
+					{
+						loader: "css-loader",
+						options: {
+							sourceMap: true,
+						}
+					},
+					{loader: "postcss-loader"},
 				],
 			},
 			{
-				test: /\.(scss|sass)$/,
-				use: ["style-loader", "css-loader", "sass-loader"],
+				// test: /\.(scss|sass)$/,
+				test: /\.s[ac]ss$/i,
+				use: [
+					"style-loader",
+					{
+						loader: "css-loader",
+						options: {
+							sourceMap: true,
+						},
+					},
+					'postcss-loader',
+					{
+						loader: "sass-loader",
+						options: {
+							sourceMap: true,
+						},
+					},
+				],
 			},
 			{
 				test: /\.(jpe?g|png|gif|svg)$/i,
