@@ -12,6 +12,7 @@ type State = {
     price: string;
     vatPrice: string;
     sellPrice: string;
+    sendPrice: string;
 }
 
 class PartsDetail extends React.Component<Record<any, PartDetailParam>, State> {
@@ -23,7 +24,8 @@ class PartsDetail extends React.Component<Record<any, PartDetailParam>, State> {
             purchaseStock: '1',
             sellPrice: '0',
             vatPrice: '0',
-            price: '0'
+            price: '0',
+            sendPrice: '0'
         }
     }
 
@@ -78,14 +80,14 @@ class PartsDetail extends React.Component<Record<any, PartDetailParam>, State> {
      */
     setStateCalcPriceCurrency(part, purchaseStock) {
         const price = parseInt(this.calcPrice(part, purchaseStock).toFixed()); // 가격
-        const sendCost = price < 50000 ? 2500 : 0; // 5만원 이상은 배송비 무료
-        const priceWithSendCost = price + sendCost;
-        const vatPrice = parseInt((priceWithSendCost * 0.1).toFixed()); // 부가세
-        const sellPrice = priceWithSendCost + vatPrice; // 판매가격
+        const sendPrice = price < 50000 ? 2500 : 0; // 5만원 이상은 배송비 무료
+        const vatPrice = parseInt((price * 0.1).toFixed()); // 부가세
+        const sellPrice = price + sendPrice + vatPrice; // 판매가격
 
         const currencyPrice = this.currency(price);
         const currencyVatPrice = this.currency(vatPrice);
         const currencySellPrice = this.currency(sellPrice);
+        const currencySendPrice = this.currency(sendPrice);
         if(purchaseStock <= 0) {
             return;
         }
@@ -93,7 +95,8 @@ class PartsDetail extends React.Component<Record<any, PartDetailParam>, State> {
             purchaseStock: purchaseStock,
             price: currencyPrice,
             vatPrice: currencyVatPrice,
-            sellPrice: currencySellPrice
+            sellPrice: currencySellPrice,
+            sendPrice: currencySendPrice
         });
         return currencyPrice;
     }
@@ -240,6 +243,14 @@ class PartsDetail extends React.Component<Record<any, PartDetailParam>, State> {
                                     </dt>
                                     <dd className="text-sm text-gray-900 sm:mt-0 sm:col-span-2">
                                         {this.state.vatPrice}원
+                                    </dd>
+                                </div>
+                                <div className="px-4 py-3 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                                    <dt className="text-sm font-medium text-gray-500">
+                                        배송비
+                                    </dt>
+                                    <dd className="text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+                                        {this.state.sendPrice}원
                                     </dd>
                                 </div>
                                 <div className="px-4 py-3 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
