@@ -26,6 +26,9 @@
     "start": "yarn run start-dev",
     "start-dev": "webpack serve --config=configs/webpack/dev.js",
     "start-prod": "yarn run build && node express.js",
+    "start-dev-part-detail-app": "webpack serve --config=configs/webpack/dev.js --env filename=parts-detail-app.tsx",
+    "start-build-part-detail-app": "cross-env NODE_ENV=production webpack --config=configs/webpack/prod.js --env filename=parts-detail-app.tsx",
+    "start-prod-serve": "node express.js",
     "test": "jest --coverage --watchAll --config=configs/jest.json"
   },
   "devDependencies": {
@@ -35,7 +38,7 @@
     "@babel/preset-env": "^7.13.10",
     "@babel/preset-react": "^7.12.13",
     "@babel/preset-typescript": "^7.13.0",
-    "@fullhuman/postcss-purgecss": "fullhuman/postcss-purgecss",
+    "@fullhuman/postcnss-purgecss": "fullhuman/postcss-purgecss",
     "@types/jest": "^26.0.20",
     "@types/node": "^14.14.34",
     "@types/react": "^17.0.3",
@@ -46,6 +49,7 @@
     "babel-loader": "^8.2.2",
     "babel-plugin-react-css-modules": "^5.2.6",
     "babel-preset-minify": "^0.5.1",
+    "cross-env": "^7.0.3",
     "css-loader": "^5.2.1",
     "cssnano": "^5.0.2",
     "eslint": "^7.24.0",
