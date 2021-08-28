@@ -2,11 +2,15 @@ $bg-color: yellow;
 $border-color: red;
 
 .app {
-  font-family: helvetica, arial, sans-serif;
-  padding: 2em;
-  border: 5px solid $border-color;
+    font-family: helvetica, arial, sans-serif;
+    padding: 2em;
+    border: 5px solid $border-color;
 
-  p {
-    background-color: $bg-color;
-  }
+    p {
+        background-color: $bg-color;
+    }
+}
+
+.sp-btn-primary {
+    @apply bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded
 }

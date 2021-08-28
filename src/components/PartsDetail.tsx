@@ -2,9 +2,11 @@ import * as React from "react";
 import {hot} from "react-hot-loader";
 import {PartDetailParam} from "../parts-detail-app";
 import "./../assets/scss/PartsDetail.scss";
+import { useEffect } from "react";
 
 declare const $: any;
 declare const GerberCart: any;
+declare const bomAnalysisCommon: any;
 
 type State = {
     items: any;
@@ -30,21 +32,52 @@ class PartsDetail extends React.Component<Record<any, PartDetailParam>, State> {
     }
 
     componentDidMount() {
-        $.ajax({
-            type: 'post',
-            url: this.props.params.mlServerUrl + '/api/searchPartsByIds',
-            contentType: 'application/json',
-            dataType: 'json',
-            data: JSON.stringify({
-                ids: [this.props.params.partsId]
+        if(isNaN(Number(this.props.params.partsId))) {
+            this.loadScript().then(() => {
+                bomAnalysisCommon.searchSamplepcbPartsById(1, this.props.params.partsId, this.props.params.xpServerApiUrl).then(response => {
+                    if(!response.result || response.totalCount === 0) {
+                        return;
+                    }
+                    const data = bomAnalysisCommon.convertParts(response.data, this.props.params.fileServerApiUrl);
+                    const results = data.search.results;
+                    const part = results[0].part;
+                    this.setState({
+                        items: {
+                            parts: [part]
+                        }
+                    })
+                    this.setStateCalcPriceCurrency(part, 1);
+                })
             })
-        }).then(response=> {
-            this.setState({
-                items: response
-            })
-            this.setStateCalcPriceCurrency(response.parts[0], 1);
-        });
+        } else {
+            $.ajax({
+                type: 'post',
+                url: this.props.params.mlServerApiUrl + '/searchPartsByIds',
+                contentType: 'application/json',
+                dataType: 'json',
+                data: JSON.stringify({
+                    ids: [this.props.params.partsId]
+                })
+            }).then(response => {
+                this.setState({
+                    items: response
+                })
+                this.setStateCalcPriceCurrency(response.parts[0], 1);
+            });
+        }
 
+    }
+
+    loadScript(): Promise<boolean> {
+        return new Promise(resolve => {
+            const script = document.createElement("script");
+            script.src = "//samplepcb.co.kr/js/bom.analysis.common.js";
+            script.async = true;
+            script.onload = () => {
+                resolve(true);
+            }
+            document.body.appendChild(script);
+        });
     }
 
     /**
@@ -69,6 +102,10 @@ class PartsDetail extends React.Component<Record<any, PartDetailParam>, State> {
             if(price.quantity <= purchaseStock) {
                 selectedPrice = price;
             }
+        }
+
+        if(!selectedPrice || !selectedPrice.converted_price ) {
+            return 0;
         }
         return purchaseStock * selectedPrice.converted_price.toFixed();
     }
@@ -154,7 +191,7 @@ class PartsDetail extends React.Component<Record<any, PartDetailParam>, State> {
             <div id="app" className="p-3">
                 <div className="max-w-full mx-auto bg-white overflow-hidden">
                     <p className="my-5 text-sm">
-                        {item?.category?.path.substr(1).replace(/\//gi, ' > ')}
+                        {item?.category?.path && item?.category?.path.substr(1).replace(/\//gi, ' > ')}
                     </p>
                     <div className="md:flex">
                         <div className="md:flex-shrink-0 md:mr-3 mb-2 md:w-72">
@@ -320,7 +357,7 @@ class PartsDetail extends React.Component<Record<any, PartDetailParam>, State> {
                                         {price.quantity}개
                                     </dt>
                                     <dd className="text-xs text-gray-900 leading-5">
-                                        {this.currency(price.converted_price)} 원
+                                        {price.converted_price && this.currency(price.converted_price)} 원
                                     </dd>
                                 </dl>
                             ))}
@@ -351,7 +388,7 @@ class PartsDetail extends React.Component<Record<any, PartDetailParam>, State> {
                                         </tr>
                                         </thead>
                                         <tbody className="bg-white divide-y divide-gray-200">
-                                        {item?.specs.map(specs => (
+                                        {item?.specs && item?.specs.map(specs => (
                                             <tr key={specs.attribute.name}>
                                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                                     {specs.attribute.name}

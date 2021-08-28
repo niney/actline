@@ -28,21 +28,26 @@
     "start-prod": "yarn run build && node express.js",
     "start-dev-part-detail-app": "webpack serve --config=configs/webpack/dev.js --env filename=parts-detail-app.tsx",
     "start-build-part-detail-app": "cross-env NODE_ENV=production webpack --config=configs/webpack/prod.js --env filename=parts-detail-app.tsx",
+    "start-dev-part-kind-form-app": "webpack serve --config=configs/webpack/dev.js --env filename=parts-kind-form-app.tsx",
+    "start-build-part-kind-form-app": "cross-env NODE_ENV=production webpack --config=configs/webpack/prod.js --env filename=parts-kind-form-app.tsx",
     "start-prod-serve": "node express.js",
     "test": "jest --coverage --watchAll --config=configs/jest.json"
   },
   "devDependencies": {
     "@babel/cli": "^7.13.10",
     "@babel/core": "^7.13.10",
+    "@babel/plugin-transform-runtime": "^7.14.5",
     "@babel/polyfill": "^7.12.1",
     "@babel/preset-env": "^7.13.10",
-    "@babel/preset-react": "^7.12.13",
+    "@babel/preset-react": "^7.14.5",
     "@babel/preset-typescript": "^7.13.0",
+    "@babel/runtime": "^7.14.5",
     "@fullhuman/postcnss-purgecss": "fullhuman/postcss-purgecss",
+    "@hot-loader/react-dom": "^17.0.1",
     "@types/jest": "^26.0.20",
     "@types/node": "^14.14.34",
-    "@types/react": "^17.0.3",
-    "@types/react-dom": "^17.0.3",
+    "@types/react": "^17.0.14",
+    "@types/react-dom": "^17.0.9",
     "@typescript-eslint/eslint-plugin": "^4.22.0",
     "@typescript-eslint/parser": "^4.22.0",
     "autoprefixer": "^10.2.5",
@@ -69,7 +74,7 @@
     "postcss-url": "^10.1.3",
     "prettier": "^2.2.1",
     "react": "^17.0.2",
-    "react-dom": "^17.0.2",
+    "react-dom": "npm:@hot-loader/react-dom",
     "react-hot-loader": "^4.13.0",
     "rimraf": "^3.0.2",
     "sass-loader": "^11.0.1",
@@ -83,5 +88,8 @@
   },
   "dependencies": {
     "whatwg-fetch": "^3.6.2"
+  },
+  "alias": {
+    "react-dom": "@hot-loader/react-dom"
   }
 }
