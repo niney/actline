@@ -31,23 +31,24 @@ class PartsDetail extends React.Component<Record<any, PartDetailParam>, State> {
         }
     }
 
-    componentDidMount() {
+    async componentDidMount() {
+        // script 로드
+        await this.loadScript();
+
         if(isNaN(Number(this.props.params.partsId))) {
-            this.loadScript().then(() => {
-                bomAnalysisCommon.searchSamplepcbPartsById(1, this.props.params.partsId, this.props.params.xpServerApiUrl).then(response => {
-                    if(!response.result || response.totalCount === 0) {
-                        return;
+            bomAnalysisCommon.searchSamplepcbPartsById(1, this.props.params.partsId, this.props.params.xpServerApiUrl).then(response => {
+                if(!response.result || response.totalCount === 0) {
+                    return;
+                }
+                const data = bomAnalysisCommon.convertParts(response.data, this.props.params.fileServerApiUrl);
+                const results = data.search.results;
+                const part = results[0].part;
+                this.setState({
+                    items: {
+                        parts: [part]
                     }
-                    const data = bomAnalysisCommon.convertParts(response.data, this.props.params.fileServerApiUrl);
-                    const results = data.search.results;
-                    const part = results[0].part;
-                    this.setState({
-                        items: {
-                            parts: [part]
-                        }
-                    })
-                    this.setStateCalcPriceCurrency(part, 1);
                 })
+                this.setStateCalcPriceCurrency(part, 1);
             })
         } else {
             $.ajax({
@@ -62,13 +63,24 @@ class PartsDetail extends React.Component<Record<any, PartDetailParam>, State> {
                 this.setState({
                     items: response
                 })
-                this.setStateCalcPriceCurrency(response.parts[0], 1);
+                const part = response.parts[0];
+                if(part.sellers) {
+                    const sellers = part.sellers;
+                    if (sellers.offers && sellers.offers.prices) {
+                        const prices = sellers.offers.prices;
+                        sellers.offers.prices = bomAnalysisCommon.getSelectedPrices(prices); // 가격선택
+                    }
+                }
+                this.setStateCalcPriceCurrency(part, 1);
             });
         }
 
     }
 
     loadScript(): Promise<boolean> {
+        if($('script[src*="bom.analysis.common.js"]').length !== 0 ) {
+            return;
+        }
         return new Promise(resolve => {
             const script = document.createElement("script");
             script.src = "//samplepcb.co.kr/js/bom.analysis.common.js";
