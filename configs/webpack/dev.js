@@ -2,6 +2,7 @@
 const { merge } = require("webpack-merge");
 const webpack = require("webpack");
 const commonConfig = require("./common");
+const Path = require("path");
 
 module.exports = ((env) => {
     let filename = './index.tsx';
@@ -19,7 +20,8 @@ module.exports = ((env) => {
         ],
         devServer: {
             hot: true, // enable HMR on the server
-            port: 8100
+            port: 8100,
+            contentBase: Path.resolve(__dirname, '../..', 'public/')
         },
         devtool: "cheap-module-source-map",
         plugins: [
