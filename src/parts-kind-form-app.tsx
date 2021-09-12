@@ -8,6 +8,7 @@ declare const window: any;
 declare const $: any;
 
 export interface PartKindFormParam extends PcbCommonParam {
+	samplepcbUrl?: string;
 	xpServerApiUrl?: string;
 	mlServerApiUrl?: string;
 	fileServerApiUrl?: string;
@@ -19,6 +20,7 @@ export interface PartKindFormParam extends PcbCommonParam {
 
 const param: PartKindFormParam = {
 	el: "root",
+	samplepcbUrl: location.protocol + '//' + location.hostname + ':' + location.port,
 	xpServerApiUrl: "http://localhost:8080/api",
 	mlServerApiUrl: "http://localhost:8099/api",
 	fileServerApiUrl: "https://file.samplepcb.kr/api",

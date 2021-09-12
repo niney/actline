@@ -6,9 +6,11 @@ import "./../assets/scss/PartsKindForm.scss";
 import "./../library/jquery.auto-complete.css";
 import "./../library/jquery.auto-complete.js";
 import { ChangeEvent } from "react";
+import { PcbPartSpec } from "../pojo/pcb-part-spec";
 
 declare const $: any;
 declare const document: any;
+declare const oEditors: any;
 
 type State = {
     item: PartsKindItem;
@@ -40,6 +42,8 @@ type PartsKindItem = {
     managerPhoneNumber: string;
     managerName: string;
     managerEmail: string;
+    contents: string;
+    specs: Array<PcbPartSpec>;
 }
 
 type PartsImage = {
@@ -84,7 +88,9 @@ class PartsKindForm extends React.Component<Record<any, PartKindFormParam>, Stat
                 offerName: '',
                 managerPhoneNumber,
                 managerName,
-                managerEmail
+                managerEmail,
+                contents: '',
+                specs: []
             },
             purchaseStock: '1',
             kindInfo: [],
@@ -94,9 +100,64 @@ class PartsKindForm extends React.Component<Record<any, PartKindFormParam>, Stat
         }
     }
 
-    componentDidMount() {
+    async componentDidMount() {
         this.loadKind();
         this.onAutoCompleteEvents();
+        this.settingEditorTemplate();
+    }
+
+    /**
+     * 스트립트 로드
+     * @param name 스크립트 식별 이름
+     * @param url 경로
+     */
+    loadScript(name: string, url: string): Promise<boolean> {
+        if ($('script[src*="'+ name + '"]').length !== 0) {
+            return;
+        }
+        return new Promise(resolve => {
+            const script = document.createElement("script");
+            script.src = url;
+            script.async = true;
+            script.onload = () => {
+                resolve(true);
+            }
+            document.body.appendChild(script);
+        });
+    }
+
+    /**
+     * 에디터 삽입
+     */
+    async settingEditorTemplate() {
+        const samplepcbUrl = this.props.params.samplepcbUrl;
+
+const template = `
+<!--<script src="${samplepcbUrl}/plugin/editor/smarteditor2/js/service/HuskyEZCreator.js"></script>-->
+<script>var g5_editor_url = "${samplepcbUrl}/plugin/editor/smarteditor2", oEditors = [], ed_nonce = "32FRqI4uQA|1631386254|20393f10e545ccb43a42bc7200314a0dc827da44";</script>
+<!--<script src="${samplepcbUrl}/plugin/editor/smarteditor2/config.js"></script>-->
+<script>
+        $(function(){
+            $(".btn_cke_sc").click(function(){
+                if ($(this).next("div.cke_sc_def").length) {
+                    $(this).next("div.cke_sc_def").remove();
+                    $(this).text("단축키 일람");
+                } else {
+                    $(this).after("<div class='cke_sc_def' />").next("div.cke_sc_def").load("${samplepcbUrl}/plugin/editor/smarteditor2/shortcut.html");
+                    $(this).text("단축키 일람 닫기");
+                }
+            });
+            $(document).on("click", ".btn_cke_sc_close", function(){
+                $(this).parent("div.cke_sc_def").remove();
+            });
+        });
+</script>
+<textarea id="contents" name="contents" class="smarteditor2" maxlength="65536" style="width:100%;height:300px"></textarea>`;
+
+        $('#editor').html(template);
+
+        await this.loadScript('HuskyEZCreator.js', `${samplepcbUrl}/plugin/editor/smarteditor2/js/service/HuskyEZCreator.js`);
+        await this.loadScript('smarteditor2/config.js', `${samplepcbUrl}/plugin/editor/smarteditor2/config.js`);
     }
 
     /**
@@ -115,7 +176,7 @@ class PartsKindForm extends React.Component<Record<any, PartKindFormParam>, Stat
      * 종류, 분류 로드
      */
     async loadKind() {
-        const response = await $.get(this.props.params.xpServerApiUrl + '/pcbKind/_search?size=10000');
+        const response = await $.get(this.props.params.xpServerApiUrl + '/pcbKind/_search?size=1000000000');
         const kindInfo = this.state.kindInfo;
         this.kindResult = response.data;
         for (const kind of this.kindResult) {
@@ -232,6 +293,16 @@ class PartsKindForm extends React.Component<Record<any, PartKindFormParam>, Stat
      */
     async save(e: React.MouseEvent<HTMLButtonElement>) {
         const item = this.state.item;
+
+        // editor 내용 가져오기
+        const contents_editor_data = oEditors.getById["contents"].getIR();
+        oEditors.getById["contents"].exec("UPDATE_CONTENTS_FIELD", []);
+        if ($.inArray(document.getElementById("contents").value.toLowerCase().replace(/^\s*|\s*$/g, ""), ["&nbsp;", "<p>&nbsp;</p>", "<p><br></p>", "<div><br></div>", "<p></p>", "<br>", ""]) != -1) {
+            document.getElementById("contents").value = "";
+        }
+        if (contents_editor_data) {
+            item.contents = contents_editor_data;
+        }
 
         const response = await this.requestSave(item);
         const uploadReps = await this.requestUploadFile(response.data.id);
@@ -388,6 +459,9 @@ class PartsKindForm extends React.Component<Record<any, PartKindFormParam>, Stat
                 // 최소판매수량
                 if(receiveItem.part.sellers && receiveItem.part.sellers.offers) {
                     item.moq = receiveItem.part.sellers.offers.moq;
+                }
+                if(receiveItem.part.specs) {
+                    item.specs = receiveItem.part.specs;
                 }
 
                 that.setState({
@@ -776,6 +850,34 @@ class PartsKindForm extends React.Component<Record<any, PartKindFormParam>, Stat
                                    onChange={(event) => this.onChangeText(event)} />
                         </div>
                     </div>
+                    <div className="md:flex md:items-center mb-6">
+                        <div className="md:w-1/3">
+                            <label className="sp-pkf-label"
+                                   htmlFor="contents">
+                                제품 내용
+                            </label>
+                        </div>
+                        <div className="md:w-2/3">
+                            <div id="editor" />
+                        </div>
+                    </div>
+                    {item.specs && item.specs.length !== 0 && (
+                    <div className="md:flex md:items-center mb-6">
+                        <div className="md:w-1/3">
+                            <label className="sp-pkf-label"
+                                   htmlFor="contents">
+                                제품 스팩
+                            </label>
+                        </div>
+                        <div className="md:w-2/3">
+                            <ul>
+                            {item.specs && item.specs.map((spec) =>(
+                                <li>{spec.attribute.name} : {spec.display_value}</li>
+                            ))}
+                            </ul>
+                        </div>
+                    </div>
+                    )}
                 </form>
                 <button className="sp-btn-primary" onClick={(event) => this.save(event)}>등록</button>
             </div>
