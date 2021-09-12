@@ -52,7 +52,7 @@ class PartsDetail extends React.Component<Record<any, PartDetailParam>, State> {
                 }
             })
         } else {
-            const response = $.ajax({
+            const response = await $.ajax({
                 type: 'post',
                 url: this.props.params.mlServerApiUrl + '/searchPartsByIds',
                 contentType: 'application/json',
@@ -395,8 +395,12 @@ class PartsDetail extends React.Component<Record<any, PartDetailParam>, State> {
 
                     </div>
 
+                    {item.contents && (
+                    <>
                     <div className="my-2 text-2xl">제품 내용</div>
                     <div dangerouslySetInnerHTML={{ __html: item.contents }} />
+                    </>
+                    )}
 
                     <div className="my-2 text-2xl">제품 스팩</div>
                     <div className="flex flex-col">
