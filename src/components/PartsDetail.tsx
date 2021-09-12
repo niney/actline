@@ -3,6 +3,7 @@ import {hot} from "react-hot-loader";
 import {PartDetailParam} from "../parts-detail-app";
 import "./../assets/scss/PartsDetail.scss";
 import { useEffect } from "react";
+import { PcbPartSpec } from "../pojo/pcb-part-spec";
 
 declare const $: any;
 declare const GerberCart: any;
@@ -15,6 +16,7 @@ type State = {
     vatPrice: string;
     sellPrice: string;
     sendPrice: string;
+    specByGroup: { [key: string]: Array<PcbPartSpec> };
 }
 
 class PartsDetail extends React.Component<Record<any, PartDetailParam>, State> {
@@ -27,7 +29,8 @@ class PartsDetail extends React.Component<Record<any, PartDetailParam>, State> {
             sellPrice: '0',
             vatPrice: '0',
             price: '0',
-            sendPrice: '0'
+            sendPrice: '0',
+            specByGroup: {}
         }
     }
 
@@ -36,22 +39,20 @@ class PartsDetail extends React.Component<Record<any, PartDetailParam>, State> {
         await this.loadScript();
 
         if(isNaN(Number(this.props.params.partsId))) {
-            bomAnalysisCommon.searchSamplepcbPartsById(1, this.props.params.partsId, this.props.params.xpServerApiUrl).then(response => {
-                if(!response.result || response.totalCount === 0) {
-                    return;
+            const response = await bomAnalysisCommon.searchSamplepcbPartsById(1, this.props.params.partsId, this.props.params.xpServerApiUrl)
+            if(!response.result || response.totalCount === 0) {
+                return;
+            }
+            const data = bomAnalysisCommon.convertParts(response.data, this.props.params.fileServerApiUrl);
+            const results = data.search.results;
+            const part = results[0].part;
+            this.setState({
+                items: {
+                    parts: [part]
                 }
-                const data = bomAnalysisCommon.convertParts(response.data, this.props.params.fileServerApiUrl);
-                const results = data.search.results;
-                const part = results[0].part;
-                this.setState({
-                    items: {
-                        parts: [part]
-                    }
-                })
-                this.setStateCalcPriceCurrency(part, 1);
             })
         } else {
-            $.ajax({
+            const response = $.ajax({
                 type: 'post',
                 url: this.props.params.mlServerApiUrl + '/searchPartsByIds',
                 contentType: 'application/json',
@@ -59,20 +60,32 @@ class PartsDetail extends React.Component<Record<any, PartDetailParam>, State> {
                 data: JSON.stringify({
                     ids: [this.props.params.partsId]
                 })
-            }).then(response => {
-                this.setState({
-                    items: response
-                })
-                const part = response.parts[0];
-                if(part.sellers) {
-                    const sellers = part.sellers;
-                    if (sellers.offers && sellers.offers.prices) {
-                        const prices = sellers.offers.prices;
-                        sellers.offers.prices = bomAnalysisCommon.getSelectedPrices(prices); // 가격선택
-                    }
-                }
-                this.setStateCalcPriceCurrency(part, 1);
             });
+            this.setState({
+                items: response
+            })
+            const part = response.parts[0];
+            if (part.sellers) {
+                const sellers = part.sellers;
+                if (sellers.offers && sellers.offers.prices) {
+                    const prices = sellers.offers.prices;
+                    sellers.offers.prices = bomAnalysisCommon.getSelectedPrices(prices); // 가격선택
+                }
+            }
+            this.setStateCalcPriceCurrency(part, 1);
+        }
+
+        if(this.state.items.parts && this.state.items.parts[0].specs) {
+            const specByGroup = this.state.specByGroup;
+            for (const spec of this.state.items.parts[0].specs) {
+                if(!specByGroup.hasOwnProperty(spec.attribute.group)) {
+                    specByGroup[spec.attribute.group] = [];
+                }
+                specByGroup[spec.attribute.group].push(spec)
+            }
+            this.setState({
+                specByGroup: specByGroup
+            })
         }
 
     }
@@ -382,6 +395,10 @@ class PartsDetail extends React.Component<Record<any, PartDetailParam>, State> {
 
                     </div>
 
+                    <div className="my-2 text-2xl">제품 내용</div>
+                    <div dangerouslySetInnerHTML={{ __html: item.contents }} />
+
+                    <div className="my-2 text-2xl">제품 스팩</div>
                     <div className="flex flex-col">
                         <div className="-my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
                             <div className="py-2 align-middle inline-block min-w-full sm:px-6 lg:px-8">
@@ -400,7 +417,7 @@ class PartsDetail extends React.Component<Record<any, PartDetailParam>, State> {
                                         </tr>
                                         </thead>
                                         <tbody className="bg-white divide-y divide-gray-200">
-                                        {item?.specs && item?.specs.map(specs => (
+                                        {/*{item?.specs && item?.specs.map(specs => (
                                             <tr key={specs.attribute.name}>
                                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                                     {specs.attribute.name}
@@ -409,6 +426,25 @@ class PartsDetail extends React.Component<Record<any, PartDetailParam>, State> {
                                                     {specs.display_value}
                                                 </td>
                                             </tr>)
+                                        )}*/}
+                                        {this.state.specByGroup && Object.entries(this.state.specByGroup).map(([key, specs]) =>
+                                            <React.Fragment key={key}>
+                                                <tr>
+                                                    <td colSpan={2} className="px-6 py-4 whitespace-nowrap text-sm text-black text-lg">
+                                                        {key}
+                                                    </td>
+                                                </tr>
+                                                {specs && specs.map(spec =>
+                                                    <tr key={spec.attribute.name}>
+                                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                                            {spec.attribute.name}
+                                                        </td>
+                                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                                            {spec.display_value}
+                                                        </td>
+                                                    </tr>
+                                                )}
+                                            </React.Fragment>
                                         )}
                                         </tbody>
                                     </table>
