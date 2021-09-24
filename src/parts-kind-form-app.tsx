@@ -16,6 +16,7 @@ export interface PartKindFormParam extends PcbCommonParam {
 	managerName?: string;
 	managerPhoneNumber?: string;
 	managerEmail?: string;
+	memberId: string;
 }
 
 const param: PartKindFormParam = {
@@ -26,7 +27,8 @@ const param: PartKindFormParam = {
 	fileServerApiUrl: "https://file.samplepcb.kr/api",
 	managerName: '관리자',
 	managerPhoneNumber: '01012345678',
-	managerEmail: 'info@samplepcb.co.kr'
+	managerEmail: 'info@samplepcb.co.kr',
+	memberId: 'admin'
 };
 $.extend(true, param, window.partsKindFormAppParam);
 

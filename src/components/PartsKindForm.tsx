@@ -42,6 +42,7 @@ type PartsKindItem = {
     managerPhoneNumber: string;
     managerName: string;
     managerEmail: string;
+    memberId: string;
     contents: string;
     specs: Array<PcbPartSpec>;
 }
@@ -65,6 +66,7 @@ class PartsKindForm extends React.Component<Record<any, PartKindFormParam>, Stat
         const managerPhoneNumber = this.props.params.managerPhoneNumber;
         const managerName = this.props.params.managerName;
         const managerEmail = this.props.params.managerEmail;
+        const memberId = this.props.params.memberId;
 
         this.state = {
             item: {
@@ -89,6 +91,7 @@ class PartsKindForm extends React.Component<Record<any, PartKindFormParam>, Stat
                 managerPhoneNumber,
                 managerName,
                 managerEmail,
+                memberId,
                 contents: '',
                 specs: []
             },
