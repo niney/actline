@@ -1,13 +1,13 @@
 import { render } from "react-dom";
 import "whatwg-fetch";
 import "./index.css";
-import PartsKindForm from "./components/PartsKindForm";
+import PartsForm from "./components/PartsForm";
 import PcbCommonParam from "./pojo/pcb-common-param";
 
 declare const window: any;
 declare const $: any;
 
-export interface PartKindFormParam extends PcbCommonParam {
+export interface PartFormParam extends PcbCommonParam {
 	samplepcbUrl?: string;
 	xpServerApiUrl?: string;
 	mlServerApiUrl?: string;
@@ -19,7 +19,7 @@ export interface PartKindFormParam extends PcbCommonParam {
 	memberId: string;
 }
 
-const param: PartKindFormParam = {
+const param: PartFormParam = {
 	el: "root",
 	samplepcbUrl: location.protocol + '//' + location.hostname + ':' + location.port,
 	xpServerApiUrl: "http://localhost:8080/api",
@@ -30,8 +30,8 @@ const param: PartKindFormParam = {
 	managerEmail: 'info@samplepcb.co.kr',
 	memberId: 'admin'
 };
-$.extend(true, param, window.partsKindFormAppParam);
+$.extend(true, param, window.partsFormAppParam);
 
 const rootEl = document.getElementById(param.el);
 
-render(<PartsKindForm params={param} />, rootEl);
+render(<PartsForm params={param} />, rootEl);

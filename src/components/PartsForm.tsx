@@ -1,6 +1,6 @@
 import * as React from "react";
 import { hot } from "react-hot-loader";
-import { PartKindFormParam } from "../parts-kind-form-app";
+import { PartFormParam } from "../parts-form-app";
 import "./../assets/scss/App.scss";
 import "./../assets/scss/PartsKindForm.scss";
 import "./../library/jquery.auto-complete.css";
@@ -20,6 +20,7 @@ type State = {
 }
 
 type PartsKindItem = {
+    id: string;
     largeCategory?: string;
     mediumCategory?: string;
     smallCategory?: string;
@@ -54,7 +55,7 @@ type PartsImage = {
     size?: number;
 }
 
-class PartsKindForm extends React.Component<Record<any, PartKindFormParam>, State> {
+class PartsForm extends React.Component<Record<any, PartFormParam>, State> {
 
     kindResult: any = {};
     kindNameMap: any = {};
@@ -70,6 +71,7 @@ class PartsKindForm extends React.Component<Record<any, PartKindFormParam>, Stat
 
         this.state = {
             item: {
+                id: undefined,
                 largeCategory: '',
                 mediumCategory: '',
                 smallCategory: '',
@@ -310,6 +312,7 @@ const template = `
         const response = await this.requestSave(item);
         const uploadReps = await this.requestUploadFile(response.data.id);
         if(uploadReps) {
+            item.id = response.data.id;
             await this.requestSave(item);
         }
         const savedCallback = this.props.params.savedCallback;
@@ -875,7 +878,7 @@ const template = `
                         <div className="md:w-2/3">
                             <ul>
                             {item.specs && item.specs.map((spec) =>(
-                                <li>{spec.attribute.name} : {spec.display_value}</li>
+                                <li key={spec.attribute.name}>{spec.attribute.name} : {spec.display_value}</li>
                             ))}
                             </ul>
                         </div>
@@ -890,4 +893,4 @@ const template = `
 
 declare let module: Record<string, unknown>;
 
-export default hot(module)(PartsKindForm);
+export default hot(module)(PartsForm);
