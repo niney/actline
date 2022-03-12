@@ -31,7 +31,8 @@
     "start-dev-part-form-app": "webpack serve --config=configs/webpack/dev.js --env filename=parts-form-app.tsx",
     "start-build-part-form-app": "cross-env NODE_ENV=production webpack --config=configs/webpack/prod.js --env filename=parts-form-app.tsx",
     "start-prod-serve": "node express.js",
-    "test": "jest --coverage --watchAll --config=configs/jest.json"
+    "test": "jest --coverage --watchAll --config=configs/jest.json",
+    "apollo:codegen": "rimraf src/__generated__ && apollo client:codegen src/__generated__ --target=typescript --outputFlat"
   },
   "devDependencies": {
     "@babel/cli": "^7.13.10",
