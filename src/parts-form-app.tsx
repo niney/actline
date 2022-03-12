@@ -17,6 +17,8 @@ export interface PartFormParam extends PcbCommonParam {
 	managerPhoneNumber?: string;
 	managerEmail?: string;
 	memberId: string;
+	memberType: string;
+	partnerAuth: number;
 }
 
 const param: PartFormParam = {
@@ -28,7 +30,9 @@ const param: PartFormParam = {
 	managerName: '관리자',
 	managerPhoneNumber: '01012345678',
 	managerEmail: 'info@samplepcb.co.kr',
-	memberId: 'admin'
+	memberId: 'admin',
+	memberType: '파트너',
+	partnerAuth: 1
 };
 $.extend(true, param, window.partsFormAppParam);
 

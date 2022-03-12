@@ -1,0 +1,39 @@
+.sp-pkf-input {
+    @apply bg-gray-200 appearance-none border-2 border-gray-200 rounded w-full py-2 px-4 text-gray-700 leading-tight focus:outline-none focus:bg-white focus:border-purple-500
+}
+
+.sp-pf-label {
+    @apply block text-gray-500 font-bold md:text-right mb-1 md:mb-0 pr-4
+}
+
+.sp-pf-center {
+    display: flex;
+    justify-content: center;
+    margin-top: 30px;
+}
+
+.btn-gradient-default {
+    border: 1px solid #e2e8f0;
+    background-image: linear-gradient(to top, #ffffff, #f7fafc);
+    background-color: #f7fafc;
+}
+
+.btn-gradient-default:hover, .btn-gradient-default:active {
+    border: 1px solid #cbd5e0;
+}
+
+.btn-gradient-danger {
+    border: 1px solid #b62654;
+    background-image: linear-gradient(to top, #c21a4f, #e01e5b);
+    background-color: #c21a4f;
+}
+
+.btn-gradient-danger {
+    border: 1px solid #b62654;
+    background-image: linear-gradient(to top, #c21a4f, #e01e5b);
+    background-color: #c21a4f;
+}
+
+.btn-gradient-danger:hover, .btn-gradient-danger:active {
+    border: 1px solid darken(#c21a4f, 10%);
+}
