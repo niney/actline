@@ -6,7 +6,7 @@ import { render } from "react-dom";
 import PartsDetail from "./components/PartsDetail";
 import "whatwg-fetch";
 import "./index.css";
-import PcbCommonParam from "./pojo/actline-common-param";
+import PcbCommonParam from "./pojo/pcb-common-param";
 
 declare const window: any;
 declare const $: any;

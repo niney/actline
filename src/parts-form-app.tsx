@@ -9,30 +9,33 @@ declare const $: any;
 
 export interface PartFormParam extends PcbCommonParam {
 	samplepcbUrl?: string;
-	xpServerApiUrl?: string;
-	mlServerApiUrl?: string;
-	fileServerApiUrl?: string;
 	savedCallback?: (resultResp) => void;
 	managerName?: string;
 	managerPhoneNumber?: string;
 	managerEmail?: string;
 	memberId: string;
 	memberType: string;
+	companyName: string;
 	partnerAuth: number;
+	partsId?: string;
 }
 
 const param: PartFormParam = {
 	el: "root",
 	samplepcbUrl: location.protocol + '//' + location.hostname + ':' + location.port,
-	xpServerApiUrl: "http://localhost:8080/api",
+	// xpServerApiUrl: "http://localhost:8080/api",
+	xpServerApiUrl: "https://search.samplepcb.kr/api",
 	mlServerApiUrl: "http://localhost:8099/api",
 	fileServerApiUrl: "https://file.samplepcb.kr/api",
 	managerName: '관리자',
 	managerPhoneNumber: '01012345678',
 	managerEmail: 'info@samplepcb.co.kr',
-	memberId: 'admin',
+	// memberId: 'admin',
+	memberId: 'tester2',
 	memberType: '파트너',
-	partnerAuth: 1
+	companyName: '파트너사',
+	partnerAuth: 1,
+	partsId: 'RB6Ff38Bv-GhPZSSyOE1'
 };
 $.extend(true, param, window.partsFormAppParam);
 

@@ -1,15 +1,16 @@
 import * as React from "react";
+import { ChangeEvent } from "react";
 import { hot } from "react-hot-loader";
 import { PartFormParam } from "../parts-form-app";
 import "./../assets/scss/App.scss";
 import "../assets/scss/PartsForm.scss";
 import "./../library/jquery.auto-complete.css";
 import "./../library/jquery.auto-complete.js";
-import { ChangeEvent } from "react";
 import { PcbPartSpec } from "../pojo/pcb-part-spec";
 
 declare const $: any;
 declare const document: any;
+declare const window: any;
 declare const oEditors: any;
 
 type State = {
@@ -109,6 +110,10 @@ class PartsForm extends React.Component<Record<any, PartFormParam>, State> {
         this.loadKind();
         this.onAutoCompleteEvents();
         this.settingEditorTemplate();
+        if (this.props.params.partsId) {
+            this.loadParts(this.props.params.partsId);
+        }
+
     }
 
     /**
@@ -300,14 +305,17 @@ const template = `
         const item = this.state.item;
 
         // editor 내용 가져오기
-        const contents_editor_data = oEditors.getById["contents"].getIR();
+        let contents_editor_data = oEditors.getById["contents"].getIR();
         oEditors.getById["contents"].exec("UPDATE_CONTENTS_FIELD", []);
         if ($.inArray(document.getElementById("contents").value.toLowerCase().replace(/^\s*|\s*$/g, ""), ["&nbsp;", "<p>&nbsp;</p>", "<p><br></p>", "<div><br></div>", "<p></p>", "<br>", ""]) != -1) {
             document.getElementById("contents").value = "";
         }
         if (contents_editor_data) {
+            contents_editor_data = contents_editor_data.replace(/<p><br><\/p>$/, "");
             item.contents = contents_editor_data;
         }
+        // 공급업체 회사명
+        item.offerName = this.props.params.companyName;
 
         const response = await this.requestSave(item);
         const uploadReps = await this.requestUploadFile(response.data.id);
@@ -589,6 +597,30 @@ const template = `
         });
     }
 
+    async loadParts(partsId: string) {
+        const param = $.param({
+            id: partsId,
+            memberId: this.props.params.memberId
+        })
+        const response = await $.get(this.props.params.xpServerApiUrl + '/pcbParts/_search?' + param);
+        const item = response.data[0];
+        if(!item) {
+            return response;
+        }
+        if (item.contents) {
+            // plugin/editor/smarteditor2/config.js 수정
+            window.smarteditorOnAppLoad = (id) => {
+                if (id === "contents") {
+                    oEditors.getById[id].exec("PASTE_HTML", [item.contents]);
+                }
+            };
+        }
+        this.setState({
+            item: item,
+        });
+
+    }
+
     needRegistration() {
         return (
             <div id="app" className="sp-pf-center">
@@ -626,9 +658,10 @@ const template = `
         const item = this.state.item;
         const images = this.state.images;
         const kindInfo = this.state.kindInfo;
+        const partsId = this.props.params.partsId;
         return (
             <div id="app">
-                <form name="partsForm" className="w-full max-w-6xl">
+                <form name="partsForm" className="w-full max-w-6xl" onSubmit={(e) => {e.preventDefault(); return false;}}>
                     <div className="md:flex md:items-center mb-6">
                         <div className="md:w-1/3">
                             <label className="sp-pf-label"
@@ -637,7 +670,7 @@ const template = `
                             </label>
                         </div>
                         <div className="md:w-2/3">
-                            <select onChange={(event) => this.onChangeCategory(event, 1)} value={item.largeCategory}>
+                            <select className="sp-pf-select" onChange={(event) => this.onChangeCategory(event, 1)} value={item.largeCategory}>
                                 {kindInfo[1]?.map((kind, index) => (
                                     <option key={kind.id} value={kind.itemName}>{kind.displayName || kind.itemName}</option>
                                 ))}
@@ -652,7 +685,7 @@ const template = `
                             </label>
                         </div>
                         <div className="md:w-2/3">
-                            <select onChange={(event) => this.onChangeCategory(event, 2)} value={item.mediumCategory}>
+                            <select className="sp-pf-select" onChange={(event) => this.onChangeCategory(event, 2)} value={item.mediumCategory}>
                                 {kindInfo[2]?.map((kind, index) => (
                                     <option key={kind.id} value={kind.itemName}>{kind.displayName || kind.itemName}</option>
                                 ))}
@@ -667,7 +700,7 @@ const template = `
                             </label>
                         </div>
                         <div className="md:w-2/3">
-                            <select onChange={(event) => this.onChangeCategory(event, 3)} value={item.smallCategory}>
+                            <select className="sp-pf-select" onChange={(event) => this.onChangeCategory(event, 3)} value={item.smallCategory}>
                                 {kindInfo[3]?.map((kind, index) => (
                                     <option key={kind.id} value={kind.itemName}>{kind.displayName || kind.itemName}</option>
                                 ))}
@@ -702,132 +735,91 @@ const template = `
                     </div>
                     <div className="md:flex md:items-center mb-6">
                         <div className="md:w-1/3">
-                            <label className="sp-pf-label"
-                                   htmlFor="manufacturerName">
-                                제조사
-                            </label>
+                            <label className="sp-pf-label">제조정보</label>
                         </div>
                         <div className="md:w-2/3">
-                            <input className="sp-pf-input" type="text" value={item.manufacturerName}
-                                   name="manufacturerName"
-                                   onChange={(event) => this.onChangeText(event)} />
+                            <div className="grid grid-cols-3 gap-3">
+                                <div className="text-center">제조사</div>
+                                <div className="text-center">부품패키지</div>
+                                <div className="text-center">포장단위</div>
+                                <div>
+                                    <input className="sp-pf-input" type="text" value={item.manufacturerName}
+                                           name="manufacturerName"
+                                           onChange={(event) => this.onChangeText(event)} />
+                                </div>
+                                <div>
+                                    <input className="sp-pf-input" type="text" value={item.partsPackaging}
+                                            name="partsPackaging"
+                                            onChange={(event) => this.onChangeText(event)} />
+                                </div>
+                                <div>
+                                    <input className="sp-pf-input" type="text" value={item.packaging}
+                                           name="packaging"
+                                           onChange={(event) => this.onChangeText(event)} />
+                                </div>
+                            </div>
                         </div>
                     </div>
                     <div className="md:flex md:items-center mb-6">
                         <div className="md:w-1/3">
-                            <label className="sp-pf-label"
-                                   htmlFor="partsPackaging">
-                                부품패키지
+                            <label className="sp-pf-label">
+                                단가
                             </label>
                         </div>
                         <div className="md:w-2/3">
-                            <input className="sp-pf-input" type="text" value={item.partsPackaging}
-                                   name="partsPackaging"
-                                   onChange={(event) => this.onChangeText(event)} />
+                            <div className="grid grid-cols-5 gap-5">
+                                <div className="text-center">1~9개</div>
+                                <div className="text-center">10-99개</div>
+                                <div className="text-center">100~499개</div>
+                                <div className="text-center">500~999개</div>
+                                <div className="text-center">1000개 이상</div>
+                                <div>
+                                    <input className="sp-pf-input" type="text" value={item.price1}
+                                           name="price1"
+                                           onChange={(event) => this.onChangeText(event)} />
+                                </div>
+                                <div>
+                                    <input className="sp-pf-input" type="text" value={item.price2}
+                                           name="price2"
+                                           onChange={(event) => this.onChangeText(event)} />
+                                </div>
+                                <div>
+                                    <input className="sp-pf-input" type="text" value={item.price3}
+                                           name="price3"
+                                           onChange={(event) => this.onChangeText(event)} />
+                                </div>
+                                <div>
+                                    <input className="sp-pf-input" type="text" value={item.price4}
+                                           name="price4"
+                                           onChange={(event) => this.onChangeText(event)} />
+                                </div>
+                                <div>
+                                    <input className="sp-pf-input" type="text" value={item.price5}
+                                           name="price5"
+                                           onChange={(event) => this.onChangeText(event)} />
+                                </div>
+                            </div>
                         </div>
                     </div>
                     <div className="md:flex md:items-center mb-6">
                         <div className="md:w-1/3">
-                            <label className="sp-pf-label"
-                                   htmlFor="packaging">
-                                포장단위
-                            </label>
+                            <label className="sp-pf-label">수량</label>
                         </div>
                         <div className="md:w-2/3">
-                            <input className="sp-pf-input" type="text" value={item.packaging}
-                                   name="packaging"
-                                   onChange={(event) => this.onChangeText(event)} />
-                        </div>
-                    </div>
-                    <div className="md:flex md:items-center mb-6">
-                        <div className="md:w-1/3">
-                            <label className="sp-pf-label"
-                                   htmlFor="moq">
-                                최소판매수량
-                            </label>
-                        </div>
-                        <div className="md:w-2/3">
-                            <input className="sp-pf-input" type="text" value={item.moq}
-                                   name="moq"
-                                   onChange={(event) => this.onChangeText(event)} />
-                        </div>
-                    </div>
-                    <div className="md:flex md:items-center mb-6">
-                        <div className="md:w-1/3">
-                            <label className="sp-pf-label"
-                                   htmlFor="price1">
-                                단가(1~9)
-                            </label>
-                        </div>
-                        <div className="md:w-2/3">
-                            <input className="sp-pf-input" type="text" value={item.price1}
-                                   name="price1"
-                                   onChange={(event) => this.onChangeText(event)} />
-                        </div>
-                    </div>
-                    <div className="md:flex md:items-center mb-6">
-                        <div className="md:w-1/3">
-                            <label className="sp-pf-label"
-                                   htmlFor="price2">
-                                단가(10~99)
-                            </label>
-                        </div>
-                        <div className="md:w-2/3">
-                            <input className="sp-pf-input" type="text" value={item.price2}
-                                   name="price2"
-                                   onChange={(event) => this.onChangeText(event)} />
-                        </div>
-                    </div>
-                    <div className="md:flex md:items-center mb-6">
-                        <div className="md:w-1/3">
-                            <label className="sp-pf-label"
-                                   htmlFor="price3">
-                                단가(100~499)
-                            </label>
-                        </div>
-                        <div className="md:w-2/3">
-                            <input className="sp-pf-input" type="text" value={item.price3}
-                                   name="price3"
-                                   onChange={(event) => this.onChangeText(event)} />
-                        </div>
-                    </div>
-                    <div className="md:flex md:items-center mb-6">
-                        <div className="md:w-1/3">
-                            <label className="sp-pf-label"
-                                   htmlFor="price4">
-                                단가(500~999)
-                            </label>
-                        </div>
-                        <div className="md:w-2/3">
-                            <input className="sp-pf-input" type="text" value={item.price4}
-                                   name="price4"
-                                   onChange={(event) => this.onChangeText(event)} />
-                        </div>
-                    </div>
-                    <div className="md:flex md:items-center mb-6">
-                        <div className="md:w-1/3">
-                            <label className="sp-pf-label"
-                                   htmlFor="price5">
-                                단가(1000~)
-                            </label>
-                        </div>
-                        <div className="md:w-2/3">
-                            <input className="sp-pf-input" type="text" value={item.price5}
-                                   name="price5"
-                                   onChange={(event) => this.onChangeText(event)} />
-                        </div>
-                    </div>
-                    <div className="md:flex md:items-center mb-6">
-                        <div className="md:w-1/3">
-                            <label className="sp-pf-label"
-                                   htmlFor="inventoryLevel">
-                                재고
-                            </label>
-                        </div>
-                        <div className="md:w-2/3">
-                            <input className="sp-pf-input" type="text" value={item.inventoryLevel}
-                                   name="inventoryLevel"
-                                   onChange={(event) => this.onChangeText(event)} />
+                            <div className="grid grid-cols-2 gap-2">
+                                <div className="text-center">최소판매수량</div>
+                                <div className="text-center">재고</div>
+                                <div>
+                                    <input className="sp-pf-input" type="text" value={item.moq}
+                                           name="moq"
+                                           onChange={(event) => this.onChangeText(event)} />
+                                </div>
+                                <div>
+                                    <input className="sp-pf-input" type="text" value={item.inventoryLevel}
+                                           name="inventoryLevel"
+                                           onChange={(event) => this.onChangeText(event)} />
+                                </div>
+                            </div>
                         </div>
                     </div>
                     <div className="md:flex md:items-center mb-6">
@@ -838,9 +830,9 @@ const template = `
                             </label>
                         </div>
                         <div className="md:w-2/3">
-                            {/*{item.images && item.images.length !== 0 && item.images.map((image, index) => (
-                                <a href={this.downloadLink(image.pathToken)}>{image.originFileName}</a>
-                            ))}*/}
+                            {item.images && item.images.length !== 0 && item.images.map((image, index) => (
+                                <div className="my-2"><a href={this.downloadLink(image.pathToken)} target="_blank">{image.originFileName}</a></div>
+                            ))}
                             {images && images.length !== 0 && images.map((image, index) => (
                                 <div key={index}>
                                     <input type="file"
@@ -917,8 +909,11 @@ const template = `
                         </div>
                     </div>
                     )}
+                    <div className="md:flex md:items-center md:justify-end mb-6">
+                        <button className="sp-btn-primary md:w-40 w-full"
+                                onClick={(event) => this.save(event)}>{partsId ? '수정' : '등록'}</button>
+                    </div>
                 </form>
-                <button className="sp-btn-primary" onClick={(event) => this.save(event)}>등록</button>
             </div>
         );
     }

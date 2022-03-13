@@ -1,7 +1,7 @@
 import { render } from "react-dom";
 import "whatwg-fetch";
 import "./index.css";
-import PcbCommonParam from "./pojo/actline-common-param";
+import PcbCommonParam from "./pojo/pcb-common-param";
 import MemberForm from "./components/MemberForm";
 import { ApolloProvider } from "@apollo/client";
 import client from "./pcb-apollo"
