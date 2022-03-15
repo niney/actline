@@ -18,13 +18,15 @@ export interface PartFormParam extends PcbCommonParam {
 	companyName: string;
 	partnerAuth: number;
 	partsId?: string;
+	isHideRegBtn?: boolean;
+	serviceType?: string;
 }
 
 const param: PartFormParam = {
 	el: "root",
 	samplepcbUrl: location.protocol + '//' + location.hostname + ':' + location.port,
-	// xpServerApiUrl: "http://localhost:8080/api",
-	xpServerApiUrl: "https://search.samplepcb.kr/api",
+	xpServerApiUrl: "http://localhost:8080/api",
+	// xpServerApiUrl: "https://search.samplepcb.kr/api",
 	mlServerApiUrl: "http://localhost:8099/api",
 	fileServerApiUrl: "https://file.samplepcb.kr/api",
 	managerName: '관리자',
@@ -35,7 +37,8 @@ const param: PartFormParam = {
 	memberType: '파트너',
 	companyName: '파트너사',
 	partnerAuth: 1,
-	partsId: 'RB6Ff38Bv-GhPZSSyOE1'
+	isHideRegBtn: false,
+	// partsId: 'RB6Ff38Bv-GhPZSSyOE1'
 };
 $.extend(true, param, window.partsFormAppParam);
 

@@ -1,5 +1,5 @@
 import * as React from "react";
-import { ChangeEvent } from "react";
+import { ChangeEvent, Fragment } from "react";
 import { hot } from "react-hot-loader";
 import { PartFormParam } from "../parts-form-app";
 import "./../assets/scss/App.scss";
@@ -22,6 +22,8 @@ type State = {
 
 type PartsKindItem = {
     id: string;
+    serviceType?: string;
+    subServiceType?: string;
     largeCategory?: string;
     mediumCategory?: string;
     smallCategory?: string;
@@ -103,6 +105,13 @@ class PartsForm extends React.Component<Record<any, PartFormParam>, State> {
             images: [{
                 originFileName: ''
             }]
+        }
+        // 외부에서 저장을 실행하는 경우
+        if (window.partsFormAppParam) {
+            window.partsFormAppParam.saveExecute = (item) => {
+                $.extend(true, this.state.item, item);
+                return this.save(this.state.item);
+            };
         }
     }
 
@@ -299,11 +308,10 @@ const template = `
 
     /**
      * 저장하기
+     * @param item
      * @param e
      */
-    async save(e: React.MouseEvent<HTMLButtonElement>) {
-        const item = this.state.item;
-
+    async save(item: PartsKindItem, e?: React.MouseEvent<HTMLButtonElement>) {
         // editor 내용 가져오기
         let contents_editor_data = oEditors.getById["contents"].getIR();
         oEditors.getById["contents"].exec("UPDATE_CONTENTS_FIELD", []);
@@ -325,9 +333,10 @@ const template = `
         }
         const savedCallback = this.props.params.savedCallback;
         if(!savedCallback) {
-            return;
+            return response;
         }
         savedCallback(response);
+        return response;
     }
 
     /**
@@ -598,10 +607,16 @@ const template = `
     }
 
     async loadParts(partsId: string) {
-        const param = $.param({
-            id: partsId,
-            memberId: this.props.params.memberId
-        })
+        let paramObj: any = {
+            id: partsId
+        };
+        if (this.props.params.serviceType) {
+            paramObj.memberId = this.props.params.memberId;
+        }
+        if (this.props.params.serviceType) {
+            paramObj.serviceType = this.props.params.serviceType;
+        }
+        const param = $.param(paramObj)
         const response = await $.get(this.props.params.xpServerApiUrl + '/pcbParts/_search?' + param);
         const item = response.data[0];
         if(!item) {
@@ -659,9 +674,14 @@ const template = `
         const images = this.state.images;
         const kindInfo = this.state.kindInfo;
         const partsId = this.props.params.partsId;
+        const isHideRegBtn = this.props.params.isHideRegBtn;
         return (
             <div id="app">
-                <form name="partsForm" className="w-full max-w-6xl" onSubmit={(e) => {e.preventDefault(); return false;}}>
+                <form name="partsForm" className="w-full" onSubmit={(e) => {e.preventDefault(); return false;}}>
+                    <div className="md:flex md:items-center mb-6">
+                        <div className="md:w-1/3"/>
+                        <div className="md:w-2/3 border-t"/>
+                    </div>
                     <div className="md:flex md:items-center mb-6">
                         <div className="md:w-1/3">
                             <label className="sp-pf-label"
@@ -842,43 +862,103 @@ const template = `
                             ))}
                         </div>
                     </div>
+                    {this.props.params.serviceType && this.props.params.serviceType === "openMarket" ?
+                        <Fragment>
+                            <div className="md:flex md:items-center mb-6">
+                                <div className="md:w-1/3">
+                                    <label className="sp-pf-label"
+                                           htmlFor="managerPhoneNumber">
+                                        연락처
+                                    </label>
+                                </div>
+                                <div className="md:w-2/3">
+                                    <input className="sp-pf-input" type="text" value={item.managerPhoneNumber}
+                                           name="managerPhoneNumber"
+                                           onChange={(event) => this.onChangeText(event)} />
+                                </div>
+                            </div>
+                            <div className="md:flex md:items-center mb-6">
+                                <div className="md:w-1/3">
+                                    <label className="sp-pf-label"
+                                           htmlFor="managerName">
+                                        이름
+                                    </label>
+                                </div>
+                                <div className="md:w-2/3">
+                                    <input className="sp-pf-input" type="text" value={item.managerName}
+                                           name="managerName"
+                                           onChange={(event) => this.onChangeText(event)} />
+                                </div>
+                            </div>
+                            <div className="md:flex md:items-center mb-6">
+                                <div className="md:w-1/3">
+                                    <label className="sp-pf-label"
+                                           htmlFor="managerEmail">
+                                        이메일
+                                    </label>
+                                </div>
+                                <div className="md:w-2/3">
+                                    <input className="sp-pf-input" type="text" value={item.managerEmail}
+                                           name="managerEmail"
+                                           onChange={(event) => this.onChangeText(event)} />
+                                </div>
+                            </div>
+                        </Fragment>
+                        :
+                        <Fragment>
+                            <div className="md:flex md:items-center mb-6">
+                                <div className="md:w-1/3">
+                                    <label className="sp-pf-label"
+                                           htmlFor="managerPhoneNumber">
+                                        담당자 연락처
+                                    </label>
+                                </div>
+                                <div className="md:w-2/3">
+                                    <input className="sp-pf-input" type="text" value={item.managerPhoneNumber}
+                                           name="managerPhoneNumber"
+                                           onChange={(event) => this.onChangeText(event)} />
+                                </div>
+                            </div>
+                            <div className="md:flex md:items-center mb-6">
+                                <div className="md:w-1/3">
+                                    <label className="sp-pf-label"
+                                           htmlFor="managerName">
+                                        담당자명
+                                    </label>
+                                </div>
+                                <div className="md:w-2/3">
+                                    <input className="sp-pf-input" type="text" value={item.managerName}
+                                           name="managerName"
+                                           onChange={(event) => this.onChangeText(event)} />
+                                </div>
+                            </div>
+                            <div className="md:flex md:items-center mb-6">
+                                <div className="md:w-1/3">
+                                    <label className="sp-pf-label"
+                                           htmlFor="managerEmail">
+                                        담당자 이메일
+                                    </label>
+                                </div>
+                                <div className="md:w-2/3">
+                                    <input className="sp-pf-input" type="text" value={item.managerEmail}
+                                           name="managerEmail"
+                                           onChange={(event) => this.onChangeText(event)} />
+                                </div>
+                            </div>
+                        </Fragment>
+                    }
                     <div className="md:flex md:items-center mb-6">
                         <div className="md:w-1/3">
-                            <label className="sp-pf-label"
-                                   htmlFor="managerPhoneNumber">
-                                담당자 연락처
+                            <label className="sp-pf-label">
+                                회원정보
                             </label>
                         </div>
                         <div className="md:w-2/3">
-                            <input className="sp-pf-input" type="text" value={item.managerPhoneNumber}
-                                   name="managerPhoneNumber"
-                                   onChange={(event) => this.onChangeText(event)} />
-                        </div>
-                    </div>
-                    <div className="md:flex md:items-center mb-6">
-                        <div className="md:w-1/3">
-                            <label className="sp-pf-label"
-                                   htmlFor="managerName">
-                                담당자명
-                            </label>
-                        </div>
-                        <div className="md:w-2/3">
-                            <input className="sp-pf-input" type="text" value={item.managerName}
-                                   name="managerName"
-                                   onChange={(event) => this.onChangeText(event)} />
-                        </div>
-                    </div>
-                    <div className="md:flex md:items-center mb-6">
-                        <div className="md:w-1/3">
-                            <label className="sp-pf-label"
-                                   htmlFor="managerEmail">
-                                담당자 이메일
-                            </label>
-                        </div>
-                        <div className="md:w-2/3">
-                            <input className="sp-pf-input" type="text" value={item.managerEmail}
-                                   name="managerEmail"
-                                   onChange={(event) => this.onChangeText(event)} />
+                            <span className="text-xs">
+                                <span className="mr-2">연락처, 이름, 이메일 변경은 마이페이지 회원정보수정에서 가능합니다.</span>
+                                <a className="underline underline-offset-auto text-sky-400/100"
+                                   href="https://www.samplepcb.co.kr/bbs/member_confirm.php?url=register_form.php">회원정보수정</a>
+                            </span>
                         </div>
                     </div>
                     <div className="md:flex md:items-center mb-6">
@@ -909,10 +989,12 @@ const template = `
                         </div>
                     </div>
                     )}
+                    {isHideRegBtn === false &&
                     <div className="md:flex md:items-center md:justify-end mb-6">
                         <button className="sp-btn-primary md:w-40 w-full"
-                                onClick={(event) => this.save(event)}>{partsId ? '수정' : '등록'}</button>
-                    </div>
+                                onClick={(event) => this.save(item, event)}>{partsId ? "수정" : "등록"}</button>
+
+                    </div>}
                 </form>
             </div>
         );
