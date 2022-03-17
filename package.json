@@ -29,6 +29,8 @@
     "start-server-prod": "node express.js",
     "start-dev-part-detail-app": "webpack serve --config=configs/webpack/dev.js --env filename=parts-detail-app.tsx",
     "start-build-part-detail-app": "cross-env NODE_ENV=production webpack --config=configs/webpack/prod.js --env filename=parts-detail-app.tsx",
+    "start-dev-part-detail-open-market-app": "webpack serve --config=configs/webpack/dev.js --env filename=parts-detail-open-market-app.tsx",
+    "start-build-part-detail-open-market-app": "cross-env NODE_ENV=production webpack --config=configs/webpack/prod.js --env filename=parts-detail-open-market-app.tsx",
     "start-dev-part-form-app": "webpack serve --config=configs/webpack/dev.js --env filename=parts-form-app.tsx",
     "start-build-part-form-app": "cross-env NODE_ENV=production webpack --config=configs/webpack/prod.js --env filename=parts-form-app.tsx",
     "start-dev-member-form-app": "webpack serve --config=configs/webpack/dev.js --env filename=member-form-app.tsx",
