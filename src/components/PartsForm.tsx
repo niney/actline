@@ -675,6 +675,17 @@ const template = `
         const kindInfo = this.state.kindInfo;
         const partsId = this.props.params.partsId;
         const isHideRegBtn = this.props.params.isHideRegBtn;
+        const serviceType = this.props.params.serviceType ? this.props.params.serviceType : '';
+        let isIfNone = true;
+        let isNoneStyle = {};
+        if (serviceType && serviceType === 'openMarket') {
+            // 오픈마켓일 때는 출력하지 않는다
+            isIfNone = false;
+            isNoneStyle = {
+                display: 'none'
+            }
+
+        }
         return (
             <div id="app">
                 <form name="partsForm" className="w-full" onSubmit={(e) => {e.preventDefault(); return false;}}>
@@ -682,7 +693,7 @@ const template = `
                         <div className="md:w-1/3"/>
                         <div className="md:w-2/3 border-t"/>
                     </div>
-                    <div className="md:flex md:items-center mb-6">
+                    {isIfNone && <div className="md:flex md:items-center mb-6">
                         <div className="md:w-1/3">
                             <label className="sp-pf-label"
                                    htmlFor="largeCategory">
@@ -696,8 +707,8 @@ const template = `
                                 ))}
                             </select>
                         </div>
-                    </div>
-                    <div className="md:flex md:items-center mb-6">
+                    </div>}
+                    {isIfNone && <div className="md:flex md:items-center mb-6">
                         <div className="md:w-1/3">
                             <label className="sp-pf-label"
                                    htmlFor="mediumCategory">
@@ -711,8 +722,8 @@ const template = `
                                 ))}
                             </select>
                         </div>
-                    </div>
-                    <div className="md:flex md:items-center mb-6">
+                    </div>}
+                    {isIfNone && <div className="md:flex md:items-center mb-6">
                         <div className="md:w-1/3">
                             <label className="sp-pf-label"
                                    htmlFor="smallCategory">
@@ -726,7 +737,7 @@ const template = `
                                 ))}
                             </select>
                         </div>
-                    </div>
+                    </div>}
                     <div className="md:flex md:items-center mb-6">
                         <div className="md:w-1/3">
                             <label className="sp-pf-label"
@@ -961,7 +972,7 @@ const template = `
                             </span>
                         </div>
                     </div>
-                    <div className="md:flex md:items-center mb-6">
+                    <div className="md:flex md:items-center mb-6" style={isNoneStyle}>
                         <div className="md:w-1/3">
                             <label className="sp-pf-label"
                                    htmlFor="contents">
