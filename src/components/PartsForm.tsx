@@ -326,6 +326,10 @@ const template = `
         item.offerName = this.props.params.companyName;
 
         const response = await this.requestSave(item);
+        if (response.result === false) {
+            alert(response.message);
+            return;
+        }
         const uploadReps = await this.requestUploadFile(response.data.id);
         if(uploadReps) {
             item.id = response.data.id;
@@ -610,7 +614,7 @@ const template = `
         let paramObj: any = {
             id: partsId
         };
-        if (this.props.params.serviceType) {
+        if (this.props.params.memberId) {
             paramObj.memberId = this.props.params.memberId;
         }
         if (this.props.params.serviceType) {
@@ -646,7 +650,7 @@ const template = `
                         </div>
                         <div className="px-6 py-10 flex-grow">
                             <p className="text-gray-700 text-base">
-                                부품판매자 등록을 위해서 기업회원으로 변경해야 하며,
+                                부품판매자 등록을 위해서 파트너 혹은 기업회원으로 변경해야 하며,
                                 추가정보 입력하셔야 합니다.<br/>
                                 동의하십니까?
                             </p>
@@ -666,7 +670,30 @@ const template = `
         );
     }
 
+    waitingApproval() {
+        return (
+            <div id="app" className="sp-pf-center">
+                <div className="max-w-sm rounded-lg overflow-hidden shadow-lg bg-white m-4">
+                    <div className="flex flex-col min-h-full">
+                        <div className="px-6 py-4 border-b">
+                            <div className="text-xl text-center">부품판매자 승인대기</div>
+                        </div>
+                        <div className="px-6 py-10 flex-grow">
+                            <p className="text-gray-700 text-base">
+                                부품판매자 승인 대기 중입니다<br />
+                                관리자의 승인을 기다려주시면 감사하겠습니다.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
     public render() {
+        if (this.props.params.partnerAuth === 0 && this.props.params.memberType !== '일반') {
+            return this.waitingApproval();
+        }
         if (this.props.params.partnerAuth === 0 || this.props.params.memberType === '일반') {
             return this.needRegistration();
         }
