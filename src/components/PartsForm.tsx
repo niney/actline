@@ -43,6 +43,7 @@ type PartsKindItem = {
     memo?: string;
     offerName?: string;
     images?: Array<PartsImage>;
+    dataCode?: string;
     managerPhoneNumber: string;
     managerName: string;
     managerEmail: string;
@@ -703,7 +704,7 @@ const template = `
         const partsId = this.props.params.partsId;
         const isHideRegBtn = this.props.params.isHideRegBtn;
         const serviceType = this.props.params.serviceType ? this.props.params.serviceType : '';
-        let isIfNone = true;
+        let isIfNone = false; // 기본도 안보이게 처리요청
         let isNoneStyle = {};
         if (serviceType && serviceType === 'openMarket') {
             // 오픈마켓일 때는 출력하지 않는다
@@ -717,11 +718,11 @@ const template = `
             <div id="app">
                 <form name="partsForm" className="w-full" onSubmit={(e) => {e.preventDefault(); return false;}}>
                     <div className="md:flex md:items-center mb-6">
-                        <div className="md:w-1/3"/>
+                        <div className="md:w-2/12"/>
                         <div className="md:w-2/3 border-t"/>
                     </div>
                     {isIfNone && <div className="md:flex md:items-center mb-6">
-                        <div className="md:w-1/3">
+                        <div className="md:w-2/12">
                             <label className="sp-pf-label"
                                    htmlFor="largeCategory">
                                 대분류
@@ -736,7 +737,7 @@ const template = `
                         </div>
                     </div>}
                     {isIfNone && <div className="md:flex md:items-center mb-6">
-                        <div className="md:w-1/3">
+                        <div className="md:w-2/12">
                             <label className="sp-pf-label"
                                    htmlFor="mediumCategory">
                                 중분류
@@ -751,7 +752,7 @@ const template = `
                         </div>
                     </div>}
                     {isIfNone && <div className="md:flex md:items-center mb-6">
-                        <div className="md:w-1/3">
+                        <div className="md:w-2/12">
                             <label className="sp-pf-label"
                                    htmlFor="smallCategory">
                                 소분류
@@ -766,7 +767,7 @@ const template = `
                         </div>
                     </div>}
                     <div className="md:flex md:items-center mb-6">
-                        <div className="md:w-1/3">
+                        <div className="md:w-2/12">
                             <label className="sp-pf-label"
                                    htmlFor="partName">
                                 모델명
@@ -779,7 +780,7 @@ const template = `
                         </div>
                     </div>
                     <div className="md:flex md:items-center mb-6">
-                        <div className="md:w-1/3">
+                        <div className="md:w-2/12">
                             <label className="sp-pf-label"
                                    htmlFor="description">
                                 제품사양
@@ -792,7 +793,7 @@ const template = `
                         </div>
                     </div>
                     <div className="md:flex md:items-center mb-6">
-                        <div className="md:w-1/3">
+                        <div className="md:w-2/12">
                             <label className="sp-pf-label">제조정보</label>
                         </div>
                         <div className="md:w-2/3">
@@ -819,7 +820,7 @@ const template = `
                         </div>
                     </div>
                     <div className="md:flex md:items-center mb-6">
-                        <div className="md:w-1/3">
+                        <div className="md:w-2/12">
                             <label className="sp-pf-label">
                                 단가
                             </label>
@@ -860,7 +861,7 @@ const template = `
                         </div>
                     </div>
                     <div className="md:flex md:items-center mb-6">
-                        <div className="md:w-1/3">
+                        <div className="md:w-2/12">
                             <label className="sp-pf-label">수량</label>
                         </div>
                         <div className="md:w-2/3">
@@ -881,7 +882,7 @@ const template = `
                         </div>
                     </div>
                     <div className="md:flex md:items-center mb-6">
-                        <div className="md:w-1/3">
+                        <div className="md:w-2/12">
                             <label className="sp-pf-label"
                                    htmlFor="images">
                                 제품사진
@@ -900,10 +901,48 @@ const template = `
                             ))}
                         </div>
                     </div>
+                    <div className="md:flex md:items-center mb-6">
+                        <div className="md:w-2/12">
+                            <label className="sp-pf-label">데이트코드(D/C)</label>
+                        </div>
+                        <div className="md:w-30">
+                            <input className="sp-pf-input" type="text" value={item.dataCode}
+                                   name="dataCode"
+                                   onChange={(event) => this.onChangeText(event)} />
+                        </div>
+                    </div>
+                    {item.specs && item.specs.length !== 0 && (
+                    <div className="md:flex md:items-center mb-6">
+                        <div className="md:w-2/12">
+                            <label className="sp-pf-label"
+                                   htmlFor="contents">
+                                제품 스팩
+                            </label>
+                        </div>
+                        <div className="md:w-2/3">
+                            <ul>
+                            {item.specs && item.specs.map((spec) =>(
+                                <li key={spec.attribute.name}>{spec.attribute.name} : {spec.display_value}</li>
+                            ))}
+                            </ul>
+                        </div>
+                    </div>
+                    )}
+                    <div className="md:flex md:items-center mb-6" style={isNoneStyle}>
+                        <div className="md:w-2/12">
+                            <label className="sp-pf-label"
+                                   htmlFor="contents">
+                                제품 내용
+                            </label>
+                        </div>
+                        <div className="md:w-2/3">
+                            <div id="editor" />
+                        </div>
+                    </div>
                     {this.props.params.serviceType && this.props.params.serviceType === "openMarket" ?
                         <Fragment>
                             <div className="md:flex md:items-center mb-6">
-                                <div className="md:w-1/3">
+                                <div className="md:w-2/12">
                                     <label className="sp-pf-label"
                                            htmlFor="managerPhoneNumber">
                                         연락처
@@ -916,7 +955,7 @@ const template = `
                                 </div>
                             </div>
                             <div className="md:flex md:items-center mb-6">
-                                <div className="md:w-1/3">
+                                <div className="md:w-2/12">
                                     <label className="sp-pf-label"
                                            htmlFor="managerName">
                                         이름
@@ -929,7 +968,7 @@ const template = `
                                 </div>
                             </div>
                             <div className="md:flex md:items-center mb-6">
-                                <div className="md:w-1/3">
+                                <div className="md:w-2/12">
                                     <label className="sp-pf-label"
                                            htmlFor="managerEmail">
                                         이메일
@@ -945,7 +984,7 @@ const template = `
                         :
                         <Fragment>
                             <div className="md:flex md:items-center mb-6">
-                                <div className="md:w-1/3">
+                                <div className="md:w-2/12">
                                     <label className="sp-pf-label"
                                            htmlFor="managerPhoneNumber">
                                         담당자 연락처
@@ -958,7 +997,7 @@ const template = `
                                 </div>
                             </div>
                             <div className="md:flex md:items-center mb-6">
-                                <div className="md:w-1/3">
+                                <div className="md:w-2/12">
                                     <label className="sp-pf-label"
                                            htmlFor="managerName">
                                         담당자명
@@ -971,7 +1010,7 @@ const template = `
                                 </div>
                             </div>
                             <div className="md:flex md:items-center mb-6">
-                                <div className="md:w-1/3">
+                                <div className="md:w-2/12">
                                     <label className="sp-pf-label"
                                            htmlFor="managerEmail">
                                         담당자 이메일
@@ -986,7 +1025,7 @@ const template = `
                         </Fragment>
                     }
                     <div className="md:flex md:items-center mb-6">
-                        <div className="md:w-1/3">
+                        <div className="md:w-2/12">
                             <label className="sp-pf-label">
                                 회원정보
                             </label>
@@ -999,36 +1038,8 @@ const template = `
                             </span>
                         </div>
                     </div>
-                    <div className="md:flex md:items-center mb-6" style={isNoneStyle}>
-                        <div className="md:w-1/3">
-                            <label className="sp-pf-label"
-                                   htmlFor="contents">
-                                제품 내용
-                            </label>
-                        </div>
-                        <div className="md:w-2/3">
-                            <div id="editor" />
-                        </div>
-                    </div>
-                    {item.specs && item.specs.length !== 0 && (
-                    <div className="md:flex md:items-center mb-6">
-                        <div className="md:w-1/3">
-                            <label className="sp-pf-label"
-                                   htmlFor="contents">
-                                제품 스팩
-                            </label>
-                        </div>
-                        <div className="md:w-2/3">
-                            <ul>
-                            {item.specs && item.specs.map((spec) =>(
-                                <li key={spec.attribute.name}>{spec.attribute.name} : {spec.display_value}</li>
-                            ))}
-                            </ul>
-                        </div>
-                    </div>
-                    )}
                     {isHideRegBtn === false &&
-                    <div className="md:flex md:items-center md:justify-end mb-6">
+                    <div className="md:flex md:items-center md:justify-center mb-6">
                         <button className="sp-btn-primary md:w-40 w-full"
                                 onClick={(event) => this.save(item, event)}>{partsId ? "수정" : "등록"}</button>
 

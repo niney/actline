@@ -212,11 +212,17 @@ class PartsDetail extends React.Component<Record<any, PartDetailParam>, State> {
             return false;
         }
         item = items.parts[0];
+
+        const path = item?.category?.path;
+        const pathSplit = path?.split('/');
         return (
             <div id="app" className="p-3">
                 <div className="max-w-full mx-auto bg-white overflow-hidden">
-                    <p className="my-5 text-sm">
-                        {item?.category?.path && item?.category?.path.substr(1).replace(/\//gi, ' > ')}
+                    <p className="my-10 text-lg">
+                        {/*{item?.category?.path && item?.category?.path.substr(1).replace(/\//gi, ' | ')}*/}
+                        {path && pathSplit?.map((name, index) => index !== 0 && (
+                            <React.Fragment key={index}> {pathSplit.length - 1 === index ? (<strong>{name}</strong>)  : (<React.Fragment>{name} | </React.Fragment>)}</React.Fragment>
+                        ))}
                     </p>
                     <div className="md:flex">
                         <div className="md:flex-shrink-0 md:mr-3 mb-2 md:w-72">
@@ -234,93 +240,94 @@ class PartsDetail extends React.Component<Record<any, PartDetailParam>, State> {
                         </div>
                         <div className="border-gray-200 md:w-1/2">
                             <div className="mb-5">
-                                <h3 className="text-lg leading-6 font-medium text-gray-900">
+                                <h3 className="text-2xl leading-6 font-medium text-blue-700">
                                     {item?.mpn}
                                 </h3>
-                                <p className="mt-1 max-w-2xl text-sm text-gray-500">
+                                <p className="mt-1 max-w-2xl text-base text-gray-500">
                                     {item?.short_description}
                                 </p>
                             </div>
+                            <hr className="my-3" />
                             <dl>
-                                <div className="bg-gray-50 px-4 py-3 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
-                                    <dt className="text-sm font-medium text-gray-500">
+                                <div className="px-4 py-3 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                                    <dt className="text-base font-medium text-gray-900">
                                         제조사
                                     </dt>
-                                    <dd className="text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+                                    <dd className="text-base text-gray-900 sm:mt-0 sm:col-span-2">
                                         {item?.manufacturer.name}
                                     </dd>
                                 </div>
-                                <div className="bg-gray-50 px-4 py-3 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
-                                    <dt className="text-sm font-medium text-gray-500">
+                                <div className="px-4 py-3 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                                    <dt className="text-base font-medium text-gray-900">
                                         MPN
                                     </dt>
-                                    <dd className="text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+                                    <dd className="text-base text-gray-900 sm:mt-0 sm:col-span-2">
                                         {item?.mpn}
                                     </dd>
                                 </div>
-                                <div className="bg-gray-50 px-4 py-3 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
-                                    <dt className="text-sm font-medium text-gray-500">
+                                <div className="px-4 py-3 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                                    <dt className="text-base font-medium text-gray-900">
                                         PACKAGING
                                     </dt>
-                                    <dd className=" text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+                                    <dd className=" text-base text-gray-900 sm:mt-0 sm:col-span-2">
                                         {item?.sellers?.offers?.packaging}
                                     </dd>
                                 </div>
-                                <hr className="my-3"/>
                                 <div className="bg-white px-4 py-3 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
-                                    <dt className="text-sm font-medium text-gray-500">
+                                    <dt className="text-base font-medium text-gray-900">
                                         재고
                                     </dt>
-                                    <dd className="text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+                                    <dd className="text-base text-gray-900 sm:mt-0 sm:col-span-2">
                                         {item?.sellers?.offers?.inventory_level} EA
                                     </dd>
                                 </div>
                                 <div className="px-4 py-3 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
-                                    <dt className="text-sm font-medium text-gray-500">
+                                    <dt className="text-base font-medium text-gray-900">
                                         최소 구매수량(MOQ)
                                     </dt>
-                                    <dd className="text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+                                    <dd className="text-base text-gray-900 sm:mt-0 sm:col-span-2">
                                         {item?.sellers?.offers?.moq} EA
                                     </dd>
                                 </div>
                                 <div className="px-4 py-3 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
-                                    <dt className="text-sm font-medium text-gray-500 leading-loose">
+                                    <dt className="text-base font-medium text-gray-900 leading-loose">
                                         수량
                                     </dt>
-                                    <dd className="text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+                                    <dd className="text-base text-gray-900 sm:mt-0 sm:col-span-2">
                                         <input type="number" className="rounded-l-lg border outline-none leading-loose text-right" value={this.state.purchaseStock} onChange={(event) => this.changePurchaseStock(event, item)}/>
                                     </dd>
                                 </div>
                                 <div className="px-4 py-3 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
-                                    <dt className="text-sm font-medium text-gray-500">
+                                    <dt className="text-base font-medium text-gray-900">
                                         상품금액
                                     </dt>
-                                    <dd className="text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+                                    <dd className="text-base text-gray-900 sm:mt-0 sm:col-span-2">
                                         {this.state.price}원
                                     </dd>
                                 </div>
                                 <div className="px-4 py-3 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
-                                    <dt className="text-sm font-medium text-gray-500">
+                                    <dt className="text-base font-medium text-gray-900">
                                         부가세
                                     </dt>
-                                    <dd className="text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+                                    <dd className="text-base text-gray-900 sm:mt-0 sm:col-span-2">
                                         {this.state.vatPrice}원
                                     </dd>
                                 </div>
                                 <div className="px-4 py-3 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
-                                    <dt className="text-sm font-medium text-gray-500">
+                                    <dt className="text-base font-medium text-gray-900">
                                         배송비
                                     </dt>
-                                    <dd className="text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+                                    <dd className="text-base text-gray-900 sm:mt-0 sm:col-span-2">
                                         {this.state.sendPrice}원
                                     </dd>
                                 </div>
-                                <div className="px-4 py-3 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
-                                    <dt className="text-sm font-medium text-gray-500">
+                                <hr className="my-3" />
+                                <div className="px-4 py-3 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6 font-semibold">
+                                    <dt className="text-base font-medium text-gray-900 mt-2">
                                         총 결제금액
                                     </dt>
-                                    <dd className="text-sm text-gray-900 sm:mt-0 sm:col-span-2">
-                                        {this.state.sellPrice}원 (부가세, 항공배송료등 포함)
+                                    <dd className="text-3xl text-gray-900 sm:mt-0 sm:col-span-2">
+                                        {this.state.sellPrice}<span className="text-base">원 (부가세, 항공배송료등 포함)</span>
                                     </dd>
                                 </div>
                                 {/*<div className="bg-white px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
@@ -374,22 +381,22 @@ class PartsDetail extends React.Component<Record<any, PartDetailParam>, State> {
                                 </div>*/}
                             </dl>
                         </div>
-                        <div className="md:w-52 md:ml-3 mb-2">
-                            <div className="border p-2 text-right">
+                        <div className="md:w-60 md:ml-20 mb-2">
+                            <div className="border p-2 text-right" style={{backgroundColor: '#fafafa'}}>
                             {item?.sellers?.offers?.prices?.map((price, index)=>(
                                 <dl key={index}>
-                                    <dt className="float-left w-3/5 md:w-16 text-xs text-gray-500">
+                                    <dt className="float-left w-3/5 md:w-16 text-sm text-gray-500">
                                         {price.quantity}개
                                     </dt>
-                                    <dd className="text-xs text-gray-900 leading-5">
+                                    <dd className="text-sm text-gray-900 leading-5">
                                         {price.converted_price && this.currency(price.converted_price)} 원
                                     </dd>
                                 </dl>
                             ))}
                             </div>
                             <div>
-                                <button className="sp-pd-btn-primary mt-2 w-full" onClick={() => this.goPurchase(item)}>구매하기</button>
-                                <button className="sp-pd-btn-info mt-2 w-full" onClick={() => this.goEstimate(item)}>견적요청</button>
+                                <button className="sp-pd-btn-outline mt-2 w-full" onClick={() => this.goPurchase(item)}>구매하기</button>
+                                <button className="sp-pd-btn-primary mt-2 w-full" onClick={() => this.goEstimate(item)}>견적요청</button>
                             </div>
                         </div>
 
@@ -402,25 +409,25 @@ class PartsDetail extends React.Component<Record<any, PartDetailParam>, State> {
                     </>
                     )}
 
-                    <div className="my-2 text-2xl">제품 스팩</div>
+                    <div className="my-2 text-2xl ml-2 mb-3 font-semibold">제품 스팩</div>
                     <div className="flex flex-col">
                         <div className="-my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
                             <div className="py-2 align-middle inline-block min-w-full sm:px-6 lg:px-8">
                                 <div className="shadow overflow-hidden border-b border-gray-200 sm:rounded-lg">
-                                    <table className="min-w-full divide-y divide-gray-200">
+                                    <table className="divide-y divide-gray-200" style={{width: '960px'}}>
                                         <thead className="bg-gray-50">
-                                        <tr>
-                                            <th scope="col"
-                                                className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        <tr className="border-b-2">
+                                            <th scope="col" colSpan={2}
+                                                className="px-6 py-3 text-center text-base font-medium uppercase tracking-wider w-6/12">
                                                 형식
                                             </th>
                                             <th scope="col"
-                                                className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                className="px-6 py-3 text-center text-base font-medium uppercase tracking-wider">
                                                 제품요약
                                             </th>
                                         </tr>
                                         </thead>
-                                        <tbody className="bg-white divide-y divide-gray-200">
+                                        <tbody className="bg-white">
                                         {/*{item?.specs && item?.specs.map(specs => (
                                             <tr key={specs.attribute.name}>
                                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
@@ -433,20 +440,19 @@ class PartsDetail extends React.Component<Record<any, PartDetailParam>, State> {
                                         )}*/}
                                         {this.state.specByGroup && Object.entries(this.state.specByGroup).map(([key, specs]) =>
                                             <React.Fragment key={key}>
-                                                <tr>
-                                                    <td colSpan={2} className="px-6 py-4 whitespace-nowrap text-sm text-black text-lg">
-                                                        {key}
-                                                    </td>
-                                                </tr>
-                                                {specs && specs.map(spec =>
-                                                    <tr key={spec.attribute.name}>
-                                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                                            {spec.attribute.name}
-                                                        </td>
-                                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                                            {spec.display_value}
-                                                        </td>
-                                                    </tr>
+                                                {specs && specs.map((spec, index) => {
+                                                        const isGroupLast = specs.length - 1 === index;
+                                                        const lastBb = isGroupLast ? ' border-b-2' : '';
+                                                        return <tr key={spec.attribute.name} className={lastBb}>
+                                                            {index === 0 && <td rowSpan={specs.length} className="px-6 py-4 whitespace-nowrap text-sm text-black text-lg">{key}</td>}
+                                                            <td className={'border-0 px-6 py-4 whitespace-nowrap text-sm text-gray-500 divide-y divide-gray-200' + lastBb}>
+                                                                {spec.attribute.name}
+                                                            </td>
+                                                            <td className={'border-0 px-6 py-4 whitespace-nowrap text-sm text-gray-500' + lastBb}>
+                                                                {spec.display_value}
+                                                            </td>
+                                                        </tr>;
+                                                    }
                                                 )}
                                             </React.Fragment>
                                         )}
