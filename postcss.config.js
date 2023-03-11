@@ -14,15 +14,15 @@ module.exports = {
         require('postcss-import'),
         require('tailwindcss'),
         // 아래 추가
-        isProduction ? purgecss({
-            content: ['./src/**/*.{js,jsx,ts,tsx}', './dist/index.html'],
+        /*isProduction ? purgecss({
+            content: ['./src/!**!/!*.{js,jsx,ts,tsx}', './dist/index.html'],
             extractors: [
                 {
                     extractor: content => content.match(/[A-z0-9-:\/]+/g),
                     extensions: ["html", "js", "jsx", "ts", "tsx"]
                 }
             ]
-        }) : false,
+        }) : false,*/
         require('autoprefixer')({ grid : false }),
         isProduction ? require('cssnano')({ preset: 'default' }) : false,
     ]
