@@ -9,11 +9,13 @@ declare const $: any;
 declare const bomAnalysisCommon: any;
 declare const BomAnalysisEx: any;
 declare const pcbEstimateLib: any;
+declare const GerberCart: any;
 
 type State = {
 	items?: Array<any>;
 	gbCompany?: any;
 	selectedCompanyName?: string;
+	cart: any;
 	amount: number;
 	totalPriceCurrency: string;
 }
@@ -32,10 +34,18 @@ class BomOrderDetail extends React.Component<Record<any, BomOrderDetailParam>, S
 			items: undefined,
 			gbCompany: {},
 			selectedCompanyName: undefined,
+			cart: {},
 			amount: 0,
 			totalPriceCurrency: "0",
 		}
 		this.init();
+		document.addEventListener('keydown', (event) => {
+			// Ctrl + S
+			if (event.ctrlKey && event.key === 's') {
+				event.preventDefault(); // 기본 동작을 막음
+				this.saveBom(this.state.items);
+			}
+		});
 	}
 
 	componentDidUpdate(prevProps: Readonly<Record<any, BomOrderDetailParam>>, prevState: Readonly<State>, snapshot?: any) {
@@ -89,6 +99,7 @@ class BomOrderDetail extends React.Component<Record<any, BomOrderDetailParam>, S
 			bomAnalysisCommon.initParts(item);
 		}
 		this.setState({
+			cart: cartResponse.data[0],
 			amount: cartResponse.data[0].qty,
 			items: itemList
 		});
@@ -170,6 +181,22 @@ class BomOrderDetail extends React.Component<Record<any, BomOrderDetailParam>, S
 			pcbEstimateLibScript.src = this.props.params.samplepcbUrl + "/js/pcb.estimate.lib.js";
 			pcbEstimateLibScript.async = true;
 			document.body.appendChild(pcbEstimateLibScript);
+
+			let gerberCartScript = document.createElement("script");
+			gerberCartScript.src = this.props.params.samplepcbUrl + "/gerber_api/js/gerber_cart.js";
+			gerberCartScript.async = true;
+			document.body.appendChild(gerberCartScript);
+
+			let iaoAlertScript = document.createElement("script");
+			iaoAlertScript.src = this.props.params.samplepcbUrl + "/js/lib/iao-alert.jquery.min.js";
+			iaoAlertScript.async = true;
+			document.body.appendChild(iaoAlertScript);
+
+			const iaoAlertLink = document.createElement('link');
+			iaoAlertLink.rel = 'stylesheet';
+			iaoAlertLink.href = this.props.params.samplepcbUrl + "/css/lib/iao-alert.min.css";
+			document.head.appendChild(iaoAlertLink);
+
 		});
 	}
 
@@ -185,8 +212,29 @@ class BomOrderDetail extends React.Component<Record<any, BomOrderDetailParam>, S
 		setParams.push({ name: 'it_explan', value: JSON.stringify(this.state.items) });
 		setParams.push({ name: 'it_explan2', value: JSON.stringify(this.state.items) });
 		const response = await pcbEstimateLib.updateBomEstimate(id, setParams);
-		// convsole.log(response);
-		alert("저장완료");
+		const cart = this.state.cart;
+		const itemData = GerberCart.updateBomItem(cart.it_id, cart.it_name, this.state.totalPriceCurrency.replace(/,/g, ''), this.state.amount, cart.it_23, items);
+		const gerberCartResponse = await GerberCart.createItemAndSendCart(itemData.it_id, itemData.it_name, itemData);
+		if (response.result) {
+			// alert("저장완료");
+			$.iaoAlert({
+				msg: "저장완료",
+				type: "notification",
+				mode: "dark",
+			});
+		}
+	}
+
+	onChangeAmount(e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>, stateName: 'amount') {
+		if (stateName === "amount") {
+			if (parseInt(e.target.value) < 1) {
+				return;
+			}
+			this.calcAllPrice(e.target.value);
+		}
+		this.setState({
+			[stateName]: parseInt(e.target.value)
+		});
 	}
 
 	onChangeText(e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>, item: any) {
@@ -422,10 +470,11 @@ class BomOrderDetail extends React.Component<Record<any, BomOrderDetailParam>, S
 			|| (selectedCompanyName === "없음" && item.part.sellers.company.name === undefined));
 	}
 
-	private calcAllPrice() {
+	private calcAllPrice(amount = undefined) {
 		const itemList = this.state.items;
 		let totalPrice = 0;
 		for (const item of itemList) {
+			this.calcDefPurchaseAndAddStock(item, amount);
 			const price = bomAnalysisCommon.calcPrice(item);
 			totalPrice += price;
 			item.calcPriceCurrency = bomAnalysisCommon.currency(price);
@@ -434,6 +483,36 @@ class BomOrderDetail extends React.Component<Record<any, BomOrderDetailParam>, S
 			items: itemList,
 			totalPriceCurrency: bomAnalysisCommon.currency(totalPrice)
 		});
+	}
+
+	private calcDefPurchaseAndAddStock(item, amount) {
+		if (!amount) {
+			return;
+		}
+		if (!item[4]) {
+			item[4] = 0;
+		}
+		if (!item.addStock) {
+			item.addStock = 0;
+		}
+		var psAmount = parseInt(item[4]) * parseInt(amount.toString());
+		var purchaseStock = psAmount + parseInt(item.addStock);
+		if (item.part && item.part.sellers && item.part.sellers.offers) {
+			var inventory = item.part.sellers.offers.inventory_level; // 재고
+			var moq = item.part.sellers.offers.moq; // 최소구매 수량
+			if (moq > 1) {
+				// 최소구매 수량이 1개 이상인 세트는 수동으로 설정
+				psAmount = parseInt(item[4]);
+				purchaseStock = psAmount + parseInt(item.addStock);
+			}
+			if (moq > purchaseStock) {
+				// 최소구매 수량보다 구매수량이 작은경우
+				purchaseStock = moq;
+				item.addStock = purchaseStock - psAmount;
+				item.isAddStock = true; // 추가 수량 세팅 여부
+			}
+		}
+		item.purchaseStock = purchaseStock;
 	}
 
 	downloadExcel() {
@@ -475,7 +554,7 @@ class BomOrderDetail extends React.Component<Record<any, BomOrderDetailParam>, S
 		</>;
 		return (
 			<div id="app">
-				<div className="flex">
+				<div className="fixed flex bg-white">
 					<div className="">
 						<div className="inline-block mx-0.5 my-3">
 							<button type="button"
@@ -502,7 +581,10 @@ class BomOrderDetail extends React.Component<Record<any, BomOrderDetailParam>, S
 						)}</div>
 					<div className="ml-5 self-center">
 						<p className="p-2 border inline-block">총액 : {totalPriceCurrency}</p>
-						<p className="p-2 border inline-block">세트 : {amount}</p>
+						<p className="p-2 border inline-block">세트 : <input type="number" name="purchaseStock"
+																		   value={amount}
+																		   onChange={(event) => this.onChangeAmount(event, 'amount')}
+																		   className="appearance-none rounded w-24 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" /></p>
 					</div>
 					<div className="ml-5 self-center">
 						<button type="button"
@@ -513,8 +595,16 @@ class BomOrderDetail extends React.Component<Record<any, BomOrderDetailParam>, S
 							다운로드
 						</button>
 					</div>
+					<div className="ml-5 self-center">
+						<button type="button"
+								className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 mr-2 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800"
+								onClick={() => this.saveBom(items)}>
+							저장하기
+						</button>
+						<span>※ ctrl + s 단축키 저장됩니다.</span>
+					</div>
 				</div>
-				<div className="flex flex-col">
+				<div className="flex flex-col pt-16">
 					<div className="overflow-x-auto sm:-mx-6 lg:-mx-8">
 						<div className="py-2 inline-block min-w-full sm:px-6 lg:px-8">
 							<div className="overflow-hidden">
@@ -714,13 +804,6 @@ class BomOrderDetail extends React.Component<Record<any, BomOrderDetailParam>, S
 							</div>
 						</div>
 					</div>
-				</div>
-				<div className="mx-3">
-					<button type="button"
-							className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 mr-2 mb-2 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800"
-							onClick={() => this.saveBom(items)}>
-						저장하기
-					</button>
 				</div>
 			</div>
 		);
